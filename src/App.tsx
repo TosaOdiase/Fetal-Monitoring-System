@@ -4,6 +4,7 @@ import ControlPanel from './components/ControlPanel'
 import HeartRateMonitor from './components/HeartRateMonitor'
 import { useArduinoSerial } from './hooks/useArduinoSerial'
 import { useSimulatedData } from './hooks/useSimulatedData'
+import { useAlarmSound } from './hooks/useAlarmSound'
 import './App.css'
 
 export type ScreenType = 'mother' | 'combined' | 'fetal'
@@ -47,6 +48,9 @@ function App() {
 
   // Check if any vital is critical for screen flashing
   const isCritical = fetalStatus === 'critical' || maternalStatus === 'critical'
+
+  // Activate alarm sound when critical status detected
+  useAlarmSound(isCritical)
 
   // Arduino serial connection
   const {
@@ -104,8 +108,10 @@ function App() {
       setResetZoomKey(prev => prev + 1) // Trigger zoom reset
       setIsMonitoring(true)
     } else {
-      // Stopping monitoring
+      // Stopping monitoring - reset status to stop alarm
       setIsMonitoring(false)
+      setFetalStatus('normal')
+      setMaternalStatus('normal')
     }
   }
 
@@ -114,6 +120,9 @@ function App() {
     sampleCounter.current = 0
     simulatedData.reset()
     setResetZoomKey(prev => prev + 1) // Trigger zoom reset
+    // Reset status to normal to stop any alarms
+    setFetalStatus('normal')
+    setMaternalStatus('normal')
   }
 
   const handleConnectArduino = async () => {
