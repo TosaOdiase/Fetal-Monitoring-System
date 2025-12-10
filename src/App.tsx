@@ -7,9 +7,14 @@ import ConfirmationModal from './components/ConfirmationModal'
 import { useArduinoSerial, SignalMapping } from './hooks/useArduinoSerial'
 import { useSimulatedData } from './hooks/useSimulatedData'
 import { useRealECGData } from './hooks/useRealECGData'
-import { useRawSignals, RawSignalId } from './hooks/useRawSignals'
+import { useRawSignals, RawSignalPair } from './hooks/useRawSignals'
 import { useAlarmSound } from './hooks/useAlarmSound'
 import { createEKGSignalProcessor } from './utils/signalProcessor'
+import { storeDataPoint, getAllData, clearAllData, calculateBPM, signalToVoltage } from './utils/dataStorage'
+import { exportToExcel } from './utils/excelExport'
+import { normalizeArduinoSignal } from './utils/signalNormalization'
+import StopConfirmationModal from './components/StopConfirmationModal'
+import SignalPairChangeModal from './components/SignalPairChangeModal'
 import './App.css'
 
 export type ScreenType = 'mother' | 'combined' | 'fetal'
@@ -22,7 +27,7 @@ export interface EKGDataPoint {
   fetus: number
 }
 
-export type RawSignalSelection = RawSignalId
+export type RawSignalSelection = RawSignalPair
 
 function App() {
   const [currentScreen, setCurrentScreen] = useState<ScreenType>('fetal')
@@ -30,7 +35,7 @@ function App() {
   const [isMonitoring, setIsMonitoring] = useState(false)
   const [dataSource, setDataSource] = useState<'simulated' | 'real' | 'arduino' | 'raw'>('raw')
   const [isDevelopmentMode, setIsDevelopmentMode] = useState(true)
-  const [rawSignalSelection, setRawSignalSelection] = useState<RawSignalSelection>('signal01')
+  const [rawSignalSelection, setRawSignalSelection] = useState<RawSignalSelection>('pair01')
   const [ekgData, setEKGData] = useState<EKGDataPoint[]>([])
   const [resetZoomKey, setResetZoomKey] = useState(0) // Key to trigger zoom reset
   const [fetalStatus, setFetalStatus] = useState<'normal' | 'warning' | 'critical'>('normal')
@@ -40,8 +45,15 @@ function App() {
   const [isAlarmSilenced, setIsAlarmSilenced] = useState(false)
   const [heartbeatBeepEnabled, setHeartbeatBeepEnabled] = useState(true)
   const [showClearConfirmation, setShowClearConfirmation] = useState(false)
+  const [showStopConfirmation, setShowStopConfirmation] = useState(false)
+  const [showSignalPairChangeConfirmation, setShowSignalPairChangeConfirmation] = useState(false)
+  const [pendingSignalPair, setPendingSignalPair] = useState<RawSignalPair | null>(null)
   const [showBrowserErrorModal, setShowBrowserErrorModal] = useState(false)
   const [showConnectionErrorModal, setShowConnectionErrorModal] = useState(false)
+  
+  // Data storage for Excel export
+  const storedDataRef = useRef<EKGDataPoint[]>([])
+  const bpmCalculationWindow = useRef<{ maternal: number[], fetal: number[] }>({ maternal: [], fetal: [] })
   const [signalMapping, setSignalMapping] = useState<SignalMapping>({
     channel1: 'maternal',
     channel2: 'combined',
@@ -145,7 +157,6 @@ function App() {
     isConnected,
     connect: connectArduino,
     disconnect: disconnectArduino,
-    latestData: arduinoData,
     getQueuedData,
     hasQueuedData
   } = useArduinoSerial({
@@ -160,13 +171,64 @@ function App() {
   // Real ECG data loader (PhysioNet data)
   const realECGData = useRealECGData({ autoLoop: true })
 
-  // Raw signals loader (RAF files 01-08)
+  // Raw signals loader (signal pairs with subtraction processing)
   const rawSignalsData = useRawSignals({ 
-    signalId: rawSignalSelection, 
+    signalPair: rawSignalSelection, 
     autoLoop: true 
   })
 
-  // Reset raw signals when signal selection changes
+  // Handle signal pair change with confirmation
+  const handleSignalPairChange = (newPair: RawSignalPair) => {
+    // If monitoring or has data, show confirmation
+    if (isMonitoring || ekgData.length > 0 || storedDataRef.current.length > 0) {
+      setPendingSignalPair(newPair)
+      setShowSignalPairChangeConfirmation(true)
+    } else {
+      // No data, just switch
+      setRawSignalSelection(newPair)
+    }
+  }
+
+  const handleSignalPairChangeConfirm = () => {
+    // Stop monitoring if running
+    if (isMonitoring) {
+      setIsMonitoring(false)
+      setFetalStatus('normal')
+      setMaternalStatus('normal')
+    }
+
+    // Clear all data
+    setEKGData([])
+    storedDataRef.current = []
+    bpmCalculationWindow.current = { maternal: [], fetal: [] }
+    sampleCounter.current = 0
+    signalProcessorRef.current.reset()
+    setResetZoomKey(prev => prev + 1)
+    
+    // Clear stored data
+    clearAllData().catch(err => console.error('Error clearing stored data:', err))
+    
+    // Reset data sources
+    simulatedData.reset()
+    realECGData.reset()
+    rawSignalsData.reset()
+    
+    // Switch to new pair
+    if (pendingSignalPair) {
+      setRawSignalSelection(pendingSignalPair)
+    }
+    
+    // Close modal
+    setShowSignalPairChangeConfirmation(false)
+    setPendingSignalPair(null)
+  }
+
+  const handleSignalPairChangeCancel = () => {
+    setShowSignalPairChangeConfirmation(false)
+    setPendingSignalPair(null)
+  }
+
+  // Reset raw signals when signal selection changes (after confirmation)
   useEffect(() => {
     if (dataSource === 'raw') {
       rawSignalsData.reset()
@@ -198,14 +260,19 @@ function App() {
         if (hasQueuedData()) {
           const queuedData = getQueuedData()
           for (const arduinoSample of queuedData) {
+            // Normalize Arduino ADC values (0-1023) to display range
+            const normalizedMother = normalizeArduinoSignal(arduinoSample.mother)
+            const normalizedFetus = normalizeArduinoSignal(arduinoSample.fetus)
+            const normalizedCombined = normalizeArduinoSignal(arduinoSample.combined)
+            
             // Apply noise removal to combined signal ONLY
-            const cleanedCombined = signalProcessorRef.current.processSample(arduinoSample.combined)
+            const cleanedCombined = signalProcessorRef.current.processSample(normalizedCombined)
 
             newDataPoints.push({
               time: sampleCounter.current / 250,
-              mother: arduinoSample.mother,
+              mother: normalizedMother,
               combined: cleanedCombined, // ← FILTERED COMBINED SIGNAL
-              fetus: arduinoSample.fetus
+              fetus: normalizedFetus
             })
             sampleCounter.current++
           }
@@ -219,13 +286,18 @@ function App() {
           if (hasQueuedData()) {
             const queuedData = getQueuedData()
             for (const arduinoSample of queuedData) {
-              const cleanedCombined = signalProcessorRef.current.processSample(arduinoSample.combined)
+              // Normalize Arduino ADC values (0-1023) to display range
+              const normalizedMother = normalizeArduinoSignal(arduinoSample.mother)
+              const normalizedFetus = normalizeArduinoSignal(arduinoSample.fetus)
+              const normalizedCombined = normalizeArduinoSignal(arduinoSample.combined)
+              
+              const cleanedCombined = signalProcessorRef.current.processSample(normalizedCombined)
 
               newDataPoints.push({
                 time: sampleCounter.current / 250,
-                mother: arduinoSample.mother,
+                mother: normalizedMother,
                 combined: cleanedCombined, // ← FILTERED COMBINED SIGNAL
-                fetus: arduinoSample.fetus
+                fetus: normalizedFetus
               })
               sampleCounter.current++
             }
@@ -269,11 +341,46 @@ function App() {
         }
       }
 
-      // Add all new data points to the chart (batch update for better performance)
+      // Add all new data points to the chart and store for Excel export
       if (newDataPoints.length > 0) {
         setEKGData(prev => {
           const updated = [...prev, ...newDataPoints]
-          return updated.slice(-maxDataPoints) // Keep only last 5 seconds
+          const displayData = updated.slice(-maxDataPoints) // Keep only last 5 seconds for display
+          
+          // Store all data for Excel export (keep in memory)
+          storedDataRef.current = [...storedDataRef.current, ...newDataPoints]
+          
+          // Update BPM calculation windows
+          newDataPoints.forEach(point => {
+            bpmCalculationWindow.current.maternal.push(point.mother)
+            bpmCalculationWindow.current.fetal.push(point.fetus)
+            
+            // Keep only last 5 seconds for BPM calculation (1250 samples at 250 Hz)
+            if (bpmCalculationWindow.current.maternal.length > 1250) {
+              bpmCalculationWindow.current.maternal.shift()
+            }
+            if (bpmCalculationWindow.current.fetal.length > 1250) {
+              bpmCalculationWindow.current.fetal.shift()
+            }
+          })
+          
+          // Store data points with BPM and voltage calculations (async, don't block)
+          newDataPoints.forEach(point => {
+            const maternalBPM = calculateBPM(bpmCalculationWindow.current.maternal, 250)
+            const fetalBPM = calculateBPM(bpmCalculationWindow.current.fetal, 250)
+            
+            storeDataPoint({
+              time: point.time,
+              timestamp: Date.now(),
+              maternalVoltage: signalToVoltage(point.mother),
+              fetalVoltage: signalToVoltage(point.fetus),
+              combinedVoltage: signalToVoltage(point.combined),
+              maternalBPM,
+              fetalBPM
+            }).catch(err => console.error('Error storing data point:', err))
+          })
+          
+          return displayData
         })
       }
     }, 4) // 250 Hz = 4ms interval
@@ -288,6 +395,8 @@ function App() {
         console.warn('Auto-clearing previous data to prevent signal mixing')
         // Clear all data and metrics
         setEKGData([])
+        storedDataRef.current = []
+        bpmCalculationWindow.current = { maternal: [], fetal: [] }
         sampleCounter.current = 0
         simulatedData.reset()
         realECGData.reset()
@@ -308,20 +417,60 @@ function App() {
         })
         criticalDetectionTimeRef.current = null
         responseTimes.current = []
+        clearAllData().catch(err => console.error('Error clearing stored data:', err))
       }
 
       // Starting monitoring - clear data and reset zoom/pan
       setEKGData([])
+      storedDataRef.current = []
+      bpmCalculationWindow.current = { maternal: [], fetal: [] }
       sampleCounter.current = 0
       signalProcessorRef.current.reset() // Reset signal processor filters
       setResetZoomKey(prev => prev + 1) // Trigger zoom reset
+      clearAllData().catch(err => console.error('Error clearing stored data:', err))
       setIsMonitoring(true)
     } else {
-      // Stopping monitoring - reset status to stop alarm
-      setIsMonitoring(false)
-      setFetalStatus('normal')
-      setMaternalStatus('normal')
+      // Stopping monitoring - show confirmation modal
+      if (storedDataRef.current.length > 0) {
+        setShowStopConfirmation(true)
+      } else {
+        // No data collected, just stop
+        setIsMonitoring(false)
+        setFetalStatus('normal')
+        setMaternalStatus('normal')
+      }
     }
+  }
+
+  const handleStopConfirm = async () => {
+    setIsMonitoring(false)
+    setFetalStatus('normal')
+    setMaternalStatus('normal')
+    setShowStopConfirmation(false)
+
+    try {
+      // Get all stored data
+      const allStoredData = await getAllData()
+      
+      if (allStoredData.length > 0) {
+        // Export to Excel
+        await exportToExcel(allStoredData)
+        console.log(`Exported ${allStoredData.length} data points to Excel`)
+      }
+      
+      // Clear stored data after export
+      storedDataRef.current = []
+      bpmCalculationWindow.current = { maternal: [], fetal: [] }
+      await clearAllData()
+    } catch (error) {
+      console.error('Error exporting to Excel:', error)
+      alert('Error exporting data to Excel. Please try again.')
+    }
+  }
+
+  const handleStopCancel = () => {
+    setShowStopConfirmation(false)
+    // Continue monitoring
   }
 
   const handleClear = () => {
@@ -645,7 +794,7 @@ function App() {
           isDevelopmentMode={isDevelopmentMode}
           onToggleDevelopmentMode={handleToggleDevelopmentMode}
           rawSignalSelection={rawSignalSelection}
-          onRawSignalChange={setRawSignalSelection}
+          onRawSignalChange={handleSignalPairChange}
           signalMapping={signalMapping}
           onSignalMappingChange={setSignalMapping}
         />
@@ -656,6 +805,25 @@ function App() {
         isOpen={showClearConfirmation}
         onConfirm={performClear}
         onCancel={() => setShowClearConfirmation(false)}
+      />
+
+      {/* Stop Confirmation Modal */}
+      <StopConfirmationModal
+        isOpen={showStopConfirmation}
+        onConfirm={handleStopConfirm}
+        onCancel={handleStopCancel}
+        dataPointCount={storedDataRef.current.length}
+      />
+
+      {/* Signal Pair Change Confirmation Modal */}
+      <SignalPairChangeModal
+        isOpen={showSignalPairChangeConfirmation}
+        onConfirm={handleSignalPairChangeConfirm}
+        onCancel={handleSignalPairChangeCancel}
+        currentPair={rawSignalSelection}
+        newPair={pendingSignalPair || rawSignalSelection}
+        isMonitoring={isMonitoring}
+        dataPointCount={storedDataRef.current.length}
       />
 
       {/* Browser Unsupported Modal */}

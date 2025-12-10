@@ -101,7 +101,7 @@ export default function ZoomableEKGChart({ data, currentScreen }: ZoomableEKGCha
   // Calculate visible data with zoom and pan
   let visibleData: EKGDataPoint[] = []
   let xDomain: [number, number] = [0, 5]
-  let yDomain: [number, number] = config.yDomain
+  let yDomain: [number, number] = config.yDomain as [number, number]
 
   if (data.length > 0) {
     const latestTime = data[data.length - 1].time

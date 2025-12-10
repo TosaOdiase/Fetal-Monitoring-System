@@ -11,11 +11,11 @@
       "has_maternal": true,
       "snr": "06dB",
       "channel": "c0",
-      "source": "RAF file",
-      "min_value": 0.0,
-      "max_value": 1.0,
-      "mean_value": 0.009746666997671127,
-      "std_value": 0.09824291616678238
+      "source": "WFDB files (direct)",
+      "mecg_min": -0.3446666666666667,
+      "mecg_max": 1.4023333333333334,
+      "fecg_min": -0.171,
+      "fecg_max": 0.079
     },
     {
       "signal_id": "signal02",
@@ -28,11 +28,11 @@
       "has_maternal": true,
       "snr": "06dB",
       "channel": "c0",
-      "source": "RAF file",
-      "min_value": 0.0,
-      "max_value": 1.0,
-      "mean_value": 0.009733333252370358,
-      "std_value": 0.09817634522914886
+      "source": "WFDB files (direct)",
+      "mecg_min": -0.3446666666666667,
+      "mecg_max": 1.4023333333333334,
+      "fecg_min": 0.0,
+      "fecg_max": 0.0
     },
     {
       "signal_id": "signal03",
@@ -45,11 +45,11 @@
       "has_maternal": true,
       "snr": "06dB",
       "channel": "c1",
-      "source": "RAF file",
-      "min_value": 0.0,
-      "max_value": 1.0,
-      "mean_value": 0.009226666763424873,
-      "std_value": 0.09561137109994888
+      "source": "WFDB files (direct)",
+      "mecg_min": -0.3423333333333333,
+      "mecg_max": 1.4076666666666666,
+      "fecg_min": -0.146,
+      "fecg_max": 0.37466666666666665
     },
     {
       "signal_id": "signal04",
@@ -62,11 +62,11 @@
       "has_maternal": true,
       "snr": "06dB",
       "channel": "c1",
-      "source": "RAF file",
-      "min_value": 0.0,
-      "max_value": 1.0,
-      "mean_value": 0.009506667032837868,
-      "std_value": 0.09703756123781204
+      "source": "WFDB files (direct)",
+      "mecg_min": -0.3423333333333333,
+      "mecg_max": 1.4076666666666666,
+      "fecg_min": 0.0,
+      "fecg_max": 0.0
     },
     {
       "signal_id": "signal05",
@@ -79,11 +79,11 @@
       "has_maternal": true,
       "snr": "00dB",
       "channel": "c1",
-      "source": "RAF file",
-      "min_value": 0.0,
-      "max_value": 1.0,
-      "mean_value": 0.009759999811649323,
-      "std_value": 0.09830942004919052
+      "source": "WFDB files (direct)",
+      "mecg_min": -0.352,
+      "mecg_max": 1.409,
+      "fecg_min": -0.2886666666666667,
+      "fecg_max": 0.2723333333333333
     },
     {
       "signal_id": "signal06",
@@ -96,11 +96,11 @@
       "has_maternal": true,
       "snr": "00dB",
       "channel": "c1",
-      "source": "RAF file",
-      "min_value": 0.0,
-      "max_value": 1.0,
-      "mean_value": 0.009826666675508022,
-      "std_value": 0.0986412838101387
+      "source": "WFDB files (direct)",
+      "mecg_min": -0.352,
+      "mecg_max": 1.409,
+      "fecg_min": 0.0,
+      "fecg_max": 0.0
     },
     {
       "signal_id": "signal07",
@@ -113,11 +113,11 @@
       "has_maternal": true,
       "snr": "12dB",
       "channel": "c1",
-      "source": "RAF file",
-      "min_value": 0.0,
-      "max_value": 1.0,
-      "mean_value": 0.010879999957978725,
-      "std_value": 0.10373825579881668
+      "source": "WFDB files (direct)",
+      "mecg_min": -0.3403333333333333,
+      "mecg_max": 1.4363333333333332,
+      "fecg_min": -0.8846666666666667,
+      "fecg_max": 1.1843333333333332
     },
     {
       "signal_id": "signal08",
@@ -130,13 +130,14 @@
       "has_maternal": true,
       "snr": "12dB",
       "channel": "c1",
-      "source": "RAF file",
-      "min_value": 0.0,
-      "max_value": 1.0,
-      "mean_value": 0.010440000332891941,
-      "std_value": 0.10164156556129456
+      "source": "WFDB files (direct)",
+      "mecg_min": -0.3403333333333333,
+      "mecg_max": 1.4363333333333332,
+      "fecg_min": 0.0,
+      "fecg_max": 0.0
     }
   ],
   "total_signals": 8,
-  "sampling_rate": 250
+  "sampling_rate": 250,
+  "source": "WFDB files (direct conversion)"
 }

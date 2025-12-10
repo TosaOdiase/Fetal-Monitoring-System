@@ -1,6 +1,6 @@
 import { ScreenType, ViewMode } from '../App'
 import { SignalMapping, SignalType } from '../hooks/useArduinoSerial'
-import { RawSignalId } from '../hooks/useRawSignals'
+import { RawSignalPair } from '../hooks/useRawSignals'
 import './ControlPanel.css'
 
 interface ControlPanelProps {
@@ -16,8 +16,8 @@ interface ControlPanelProps {
   onConnectArduino: () => void
   isDevelopmentMode: boolean
   onToggleDevelopmentMode: () => void
-  rawSignalSelection: RawSignalId
-  onRawSignalChange: (signal: RawSignalId) => void
+  rawSignalSelection: RawSignalPair
+  onRawSignalChange: (signal: RawSignalPair) => void
   signalMapping?: SignalMapping
   onSignalMappingChange?: (mapping: SignalMapping) => void
 }
@@ -49,32 +49,24 @@ export default function ControlPanel({
     }
   }
 
-  const getRawSignalLabel = (signalId: RawSignalId) => {
-    const labels: Record<RawSignalId, string> = {
-      'signal01': 'Signal 01',
-      'signal02': 'Signal 02',
-      'signal03': 'Signal 03',
-      'signal04': 'Signal 04',
-      'signal05': 'Signal 05',
-      'signal06': 'Signal 06',
-      'signal07': 'Signal 07',
-      'signal08': 'Signal 08'
+  const getRawSignalLabel = (signalPair: RawSignalPair) => {
+    const labels: Record<RawSignalPair, string> = {
+      'pair01': 'Pair 01',
+      'pair02': 'Pair 02',
+      'pair03': 'Pair 03',
+      'pair04': 'Pair 04'
     }
-    return labels[signalId]
+    return labels[signalPair]
   }
 
-  const getSignalDescription = (signalId: RawSignalId) => {
-    const descriptions: Record<RawSignalId, string> = {
-      'signal01': 'c0 snr06 - Fetal + Maternal',
-      'signal02': 'c0 snr06 - Maternal only',
-      'signal03': 'c1 snr06 - Fetal + Maternal',
-      'signal04': 'c1 snr06 - Maternal only',
-      'signal05': 'c1 snr00 - Fetal + Maternal (high noise)',
-      'signal06': 'c1 snr00 - Maternal only (high noise)',
-      'signal07': 'c1 snr12 - Fetal + Maternal (low noise)',
-      'signal08': 'c1 snr12 - Maternal only (low noise)'
+  const getSignalDescription = (signalPair: RawSignalPair) => {
+    const descriptions: Record<RawSignalPair, string> = {
+      'pair01': 'c0 snr06 - Extract fetal via subtraction',
+      'pair02': 'c1 snr06 - Extract fetal via subtraction',
+      'pair03': 'c1 snr00 - Extract fetal via subtraction (high noise)',
+      'pair04': 'c1 snr12 - Extract fetal via subtraction (low noise)'
     }
-    return descriptions[signalId]
+    return descriptions[signalPair]
   }
 
   const getSignalLabel = (type: SignalType) => {
@@ -288,23 +280,30 @@ export default function ControlPanel({
           </div>
         )}
 
-        {/* Raw Signals Section - Only in Development Mode */}
+        {/* Raw Signal Pairs Section - Only in Development Mode */}
         {isDevelopmentMode && dataSource === 'raw' && (
           <div className="control-section conditions-section">
             <div className="section-header">
-              <h3 className="section-title">Raw Signals (01-08)</h3>
+              <h3 className="section-title">Signal Pairs (Subtraction Processing)</h3>
+              <span className="section-info">Fetal = Combined - Maternal</span>
             </div>
             <div className="button-group">
-              {(['signal01', 'signal02', 'signal03', 'signal04', 'signal05', 'signal06', 'signal07', 'signal08'] as RawSignalId[]).map((signalId) => (
+              {(['pair01', 'pair02', 'pair03', 'pair04'] as RawSignalPair[]).map((signalPair) => (
                 <button
-                  key={signalId}
-                  className={`btn btn-condition ${rawSignalSelection === signalId ? 'active' : ''}`}
-                  onClick={() => onRawSignalChange(signalId)}
-                  title={getSignalDescription(signalId)}
+                  key={signalPair}
+                  className={`btn btn-condition ${rawSignalSelection === signalPair ? 'active' : ''}`}
+                  onClick={() => onRawSignalChange(signalPair)}
+                  title={getSignalDescription(signalPair)}
                 >
-                  <span className="btn-label">{getRawSignalLabel(signalId)}</span>
+                  <span className="btn-label">{getRawSignalLabel(signalPair)}</span>
                 </button>
               ))}
+            </div>
+            <div className="signal-pair-info">
+              <p><strong>Pair 01:</strong> c0 snr06 - Fetal extracted via subtraction</p>
+              <p><strong>Pair 02:</strong> c1 snr06 - Fetal extracted via subtraction</p>
+              <p><strong>Pair 03:</strong> c1 snr00 - Fetal extracted via subtraction (high noise)</p>
+              <p><strong>Pair 04:</strong> c1 snr12 - Fetal extracted via subtraction (low noise)</p>
             </div>
           </div>
         )}

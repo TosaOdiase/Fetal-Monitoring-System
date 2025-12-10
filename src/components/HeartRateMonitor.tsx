@@ -3,7 +3,7 @@ import { EKGDataPoint } from '../App'
 import SystemInsightsModal from './SystemInsightsModal'
 import { useHeartbeatBeep } from '../hooks/useHeartbeatBeep'
 import './HeartRateMonitor.css'
-import InfoIcon from '../assets/information-circle.svg'
+// InfoIcon - using inline SVG
 
 interface AlarmMetrics {
   lastAlarmTime: number | null
@@ -225,7 +225,9 @@ export default function HeartRateMonitor({ data, type, onStatusChange, alarmMetr
             onClick={() => setIsModalOpen(true)}
             title="View system functional insights and testing specifications"
           >
-            <img src={InfoIcon} alt="Info" className="info-icon" width="20" height="20" />
+            <svg viewBox="0 0 24 24" className="info-icon" width="20" height="20" fill="currentColor">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+            </svg>
           </button>
           <div className={`hrm-status status-${status}`}>
             {getStatusText()}

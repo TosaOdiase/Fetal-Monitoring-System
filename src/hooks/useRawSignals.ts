@@ -2,44 +2,75 @@
  * useRawSignals Hook
  *
  * Loads and plays back raw signal files (01-08) from RAF files
- * These are the actual processed signals from the signalAddition.py script
+ * Supports signal pair subtraction to extract fetal ECG:
+ * - Combined signal (fecg + mecg) - Maternal signal (mecg) = Fetal signal (fecg)
  */
 
 import { useState, useEffect, useRef } from 'react'
 import { EKGDataPoint } from '../App'
 
-export type RawSignalId = 
-  | 'signal01'
-  | 'signal02'
-  | 'signal03'
-  | 'signal04'
-  | 'signal05'
-  | 'signal06'
-  | 'signal07'
-  | 'signal08'
+export type RawSignalPair = 
+  | 'pair01'  // Signal 1-2: c0 snr06
+  | 'pair02'  // Signal 3-4: c1 snr06
+  | 'pair03'  // Signal 5-6: c1 snr00
+  | 'pair04'  // Signal 7-8: c1 snr12
 
 export interface RawSignalMetadata {
-  signal_id: RawSignalId
+  signal_pair: RawSignalPair
   name: string
   description: string
   sampling_rate: number
   duration_seconds: number
   num_samples: number
-  has_fetal: boolean
-  has_maternal: boolean
   snr: string
   channel: string
   source: string
 }
 
 interface UseRawSignalsOptions {
-  signalId: RawSignalId
+  signalPair: RawSignalPair
   autoLoop?: boolean
   playbackSpeed?: number
 }
 
+// Signal pair definitions
+const SIGNAL_PAIRS: Record<RawSignalPair, { combined: string, maternal: string, name: string, description: string, snr: string, channel: string }> = {
+  'pair01': {
+    combined: 'signal01',  // fecg + mecg (c0 snr06)
+    maternal: 'signal02',  // mecg (c0 snr06)
+    name: 'Pair 01',
+    description: 'c0 snr06 - Extract fetal via subtraction',
+    snr: '06dB',
+    channel: 'c0'
+  },
+  'pair02': {
+    combined: 'signal03',  // fecg + mecg (c1 snr06)
+    maternal: 'signal04',  // mecg (c1 snr06)
+    name: 'Pair 02',
+    description: 'c1 snr06 - Extract fetal via subtraction',
+    snr: '06dB',
+    channel: 'c1'
+  },
+  'pair03': {
+    combined: 'signal05',  // fecg + mecg (c1 snr00)
+    maternal: 'signal06',  // mecg (c1 snr00)
+    name: 'Pair 03',
+    description: 'c1 snr00 - Extract fetal via subtraction (high noise)',
+    snr: '00dB',
+    channel: 'c1'
+  },
+  'pair04': {
+    combined: 'signal07',  // fecg + mecg (c1 snr12)
+    maternal: 'signal08',  // mecg (c1 snr12)
+    name: 'Pair 04',
+    description: 'c1 snr12 - Extract fetal via subtraction (low noise)',
+    snr: '12dB',
+    channel: 'c1'
+  }
+}
+
 export function useRawSignals(options: UseRawSignalsOptions) {
-  const { signalId, autoLoop = true, playbackSpeed = 1.0 } = options
+  const { signalPair, autoLoop = true, playbackSpeed = 1.0 } = options
 
   const [data, setData] = useState<EKGDataPoint[]>([])
   const [metadata, setMetadata] = useState<RawSignalMetadata | null>(null)
@@ -50,7 +81,7 @@ export function useRawSignals(options: UseRawSignalsOptions) {
   const dataRef = useRef<EKGDataPoint[]>([])
   const currentIndexRef = useRef(0)
 
-  // Load the signal data when signalId changes
+  // Load the signal pair data when signalPair changes
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true)
@@ -58,45 +89,78 @@ export function useRawSignals(options: UseRawSignalsOptions) {
       setIsLoaded(false)
 
       try {
-        const response = await fetch(`/raw_signals/${signalId}.json`)
+        const pairInfo = SIGNAL_PAIRS[signalPair]
+        
+        // Load both signals
+        const [combinedResponse, maternalResponse] = await Promise.all([
+          fetch(`/raw_signals/${pairInfo.combined}.json`),
+          fetch(`/raw_signals/${pairInfo.maternal}.json`)
+        ])
 
-        if (!response.ok) {
-          throw new Error(`Failed to load signal data: ${response.statusText}`)
+        if (!combinedResponse.ok || !maternalResponse.ok) {
+          throw new Error(`Failed to load signal data: ${combinedResponse.statusText || maternalResponse.statusText}`)
         }
 
-        const jsonData = await response.json()
+        const combinedData = await combinedResponse.json()
+        const maternalData = await maternalResponse.json()
 
-        // Convert to EKGDataPoint format
-        const ekgData: EKGDataPoint[] = jsonData.data.map((point: any) => ({
-          time: point.time,
-          mother: point.mother,
-          combined: point.combined,
-          fetus: point.fetus
-        }))
+        // Extract fetal signal via subtraction: fecg = (fecg + mecg) - mecg
+        const minLength = Math.min(
+          combinedData.data.length,
+          maternalData.data.length
+        )
+
+        const ekgData: EKGDataPoint[] = []
+        
+        for (let i = 0; i < minLength; i++) {
+          const combinedPoint = combinedData.data[i]
+          const maternalPoint = maternalData.data[i]
+          
+          // Perform subtraction: fetal = combined - maternal
+          const fetalValue = combinedPoint.combined - maternalPoint.mother
+          
+          ekgData.push({
+            time: combinedPoint.time,
+            mother: maternalPoint.mother,  // Maternal signal
+            combined: combinedPoint.combined,  // Combined signal (fecg + mecg)
+            fetus: fetalValue  // Extracted fetal signal
+          })
+        }
 
         setData(ekgData)
-        setMetadata(jsonData.metadata)
+        setMetadata({
+          signal_pair: signalPair,
+          name: pairInfo.name,
+          description: pairInfo.description,
+          sampling_rate: combinedData.metadata.sampling_rate,
+          duration_seconds: combinedData.metadata.duration_seconds,
+          num_samples: minLength,
+          snr: pairInfo.snr,
+          channel: pairInfo.channel,
+          source: 'WFDB files (subtraction processing)'
+        })
         dataRef.current = ekgData
         currentIndexRef.current = 0
         setIsLoaded(true)
 
-        console.log('Raw signal loaded:', {
-          signalId,
+        console.log('Raw signal pair loaded:', {
+          signalPair,
           samples: ekgData.length,
-          duration: jsonData.metadata.duration_seconds,
-          description: jsonData.metadata.description
+          duration: combinedData.metadata.duration_seconds,
+          description: pairInfo.description,
+          'fetal_extracted': true
         })
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Unknown error loading signal data'
         setError(errorMessage)
-        console.error('Error loading raw signal:', err)
+        console.error('Error loading raw signal pair:', err)
       } finally {
         setIsLoading(false)
       }
     }
 
     loadData()
-  }, [signalId])
+  }, [signalPair])
 
   // Get the next sample from the loaded data
   const getSample = (): EKGDataPoint => {
@@ -157,4 +221,3 @@ export function useRawSignals(options: UseRawSignalsOptions) {
     totalSamples: data.length
   }
 }
-

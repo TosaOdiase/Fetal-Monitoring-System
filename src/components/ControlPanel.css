@@ -588,6 +588,34 @@
   font-weight: 700;
 }
 
+/* Signal Pair Info */
+.signal-pair-info {
+  margin-top: 12px;
+  padding: 10px;
+  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: 6px;
+  border: 1px solid #4a4a4a;
+  font-size: 11px;
+  line-height: 1.6;
+  color: #b0b0b0;
+}
+
+.signal-pair-info p {
+  margin: 4px 0;
+}
+
+.signal-pair-info strong {
+  color: #4ecdc4;
+  font-weight: 600;
+}
+
+.section-info {
+  font-size: 10px;
+  color: #888;
+  font-style: italic;
+  margin-left: 8px;
+}
+
 /* Mode Toggle Slider */
 .mode-toggle-container {
   display: flex;
