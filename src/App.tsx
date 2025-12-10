@@ -7,6 +7,7 @@ import ConfirmationModal from './components/ConfirmationModal'
 import { useArduinoSerial, SignalMapping } from './hooks/useArduinoSerial'
 import { useSimulatedData } from './hooks/useSimulatedData'
 import { useRealECGData } from './hooks/useRealECGData'
+import { useRawSignals, RawSignalId } from './hooks/useRawSignals'
 import { useAlarmSound } from './hooks/useAlarmSound'
 import { createEKGSignalProcessor } from './utils/signalProcessor'
 import './App.css'
@@ -21,23 +22,15 @@ export interface EKGDataPoint {
   fetus: number
 }
 
-export type SimulationCondition =
-  | 'normal'
-  | 'high-risk'
-  | 'fetal-bradycardia'
-  | 'fetal-tachycardia'
-  | 'fetal-arrhythmia'
-  | 'maternal-bradycardia'
-  | 'maternal-tachycardia'
-  | 'maternal-arrhythmia'
+export type RawSignalSelection = RawSignalId
 
 function App() {
   const [currentScreen, setCurrentScreen] = useState<ScreenType>('fetal')
   const [viewMode, setViewMode] = useState<ViewMode>('standard')
   const [isMonitoring, setIsMonitoring] = useState(false)
-  const [dataSource, setDataSource] = useState<'simulated' | 'real' | 'arduino'>('simulated')
+  const [dataSource, setDataSource] = useState<'simulated' | 'real' | 'arduino' | 'raw'>('raw')
   const [isDevelopmentMode, setIsDevelopmentMode] = useState(true)
-  const [simulationCondition, setSimulationCondition] = useState<SimulationCondition>('normal')
+  const [rawSignalSelection, setRawSignalSelection] = useState<RawSignalSelection>('signal01')
   const [ekgData, setEKGData] = useState<EKGDataPoint[]>([])
   const [resetZoomKey, setResetZoomKey] = useState(0) // Key to trigger zoom reset
   const [fetalStatus, setFetalStatus] = useState<'normal' | 'warning' | 'critical'>('normal')
@@ -162,10 +155,23 @@ function App() {
   })
 
   // Simulated data generator
-  const simulatedData = useSimulatedData(simulationCondition)
+  const simulatedData = useSimulatedData('normal')
 
   // Real ECG data loader (PhysioNet data)
   const realECGData = useRealECGData({ autoLoop: true })
+
+  // Raw signals loader (RAF files 01-08)
+  const rawSignalsData = useRawSignals({ 
+    signalId: rawSignalSelection, 
+    autoLoop: true 
+  })
+
+  // Reset raw signals when signal selection changes
+  useEffect(() => {
+    if (dataSource === 'raw') {
+      rawSignalsData.reset()
+    }
+  }, [rawSignalSelection, dataSource])
 
   // Main data acquisition loop
   useEffect(() => {
@@ -224,6 +230,18 @@ function App() {
               sampleCounter.current++
             }
           }
+        } else if (dataSource === 'raw') {
+          // Use raw signal files (01-08) - apply noise removal to combined signal
+          const rawData = rawSignalsData.getSample()
+          const cleanedCombined = signalProcessorRef.current.processSample(rawData.combined)
+
+          newDataPoints.push({
+            time: sampleCounter.current / 250,
+            mother: rawData.mother,
+            combined: cleanedCombined, // ← FILTERED COMBINED SIGNAL
+            fetus: rawData.fetus
+          })
+          sampleCounter.current++
         } else if (dataSource === 'real') {
           // Use real PhysioNet ECG data - apply noise removal to combined signal
           const realData = realECGData.getSample()
@@ -273,6 +291,7 @@ function App() {
         sampleCounter.current = 0
         simulatedData.reset()
         realECGData.reset()
+        rawSignalsData.reset()
         signalProcessorRef.current.reset() // Reset signal processor filters
         setResetZoomKey(prev => prev + 1)
         setFetalAlarmMetrics({
@@ -319,9 +338,10 @@ function App() {
     // Clear all data and metrics
     setEKGData([])
     sampleCounter.current = 0
-    simulatedData.reset()
-    realECGData.reset()
-    signalProcessorRef.current.reset() // Reset signal processor filters
+      simulatedData.reset()
+      realECGData.reset()
+      rawSignalsData.reset()
+      signalProcessorRef.current.reset() // Reset signal processor filters
     setResetZoomKey(prev => prev + 1) // Trigger zoom reset
     // Reset status to normal to stop any alarms
     setFetalStatus('normal')
@@ -624,8 +644,8 @@ function App() {
           onConnectArduino={handleConnectArduino}
           isDevelopmentMode={isDevelopmentMode}
           onToggleDevelopmentMode={handleToggleDevelopmentMode}
-          simulationCondition={simulationCondition}
-          onConditionChange={setSimulationCondition}
+          rawSignalSelection={rawSignalSelection}
+          onRawSignalChange={setRawSignalSelection}
           signalMapping={signalMapping}
           onSignalMappingChange={setSignalMapping}
         />

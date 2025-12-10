@@ -1,5 +1,6 @@
-import { ScreenType, ViewMode, SimulationCondition } from '../App'
+import { ScreenType, ViewMode } from '../App'
 import { SignalMapping, SignalType } from '../hooks/useArduinoSerial'
+import { RawSignalId } from '../hooks/useRawSignals'
 import './ControlPanel.css'
 
 interface ControlPanelProps {
@@ -10,13 +11,13 @@ interface ControlPanelProps {
   isMonitoring: boolean
   onStartStop: () => void
   onClear: () => void
-  dataSource: 'simulated' | 'arduino'
+  dataSource: 'simulated' | 'arduino' | 'real' | 'raw'
   isArduinoConnected: boolean
   onConnectArduino: () => void
   isDevelopmentMode: boolean
   onToggleDevelopmentMode: () => void
-  simulationCondition: SimulationCondition
-  onConditionChange: (condition: SimulationCondition) => void
+  rawSignalSelection: RawSignalId
+  onRawSignalChange: (signal: RawSignalId) => void
   signalMapping?: SignalMapping
   onSignalMappingChange?: (mapping: SignalMapping) => void
 }
@@ -34,8 +35,8 @@ export default function ControlPanel({
   onConnectArduino,
   isDevelopmentMode,
   onToggleDevelopmentMode,
-  simulationCondition,
-  onConditionChange,
+  rawSignalSelection,
+  onRawSignalChange,
   signalMapping,
   onSignalMappingChange
 }: ControlPanelProps) {
@@ -48,17 +49,32 @@ export default function ControlPanel({
     }
   }
 
-  const getConditionLabel = (condition: SimulationCondition) => {
-    switch(condition) {
-      case 'normal': return 'Normal Pregnancy'
-      case 'high-risk': return 'High-Risk Pregnancy'
-      case 'fetal-bradycardia': return 'Fetal Bradycardia'
-      case 'fetal-tachycardia': return 'Fetal Tachycardia'
-      case 'fetal-arrhythmia': return 'Fetal Arrhythmia'
-      case 'maternal-bradycardia': return 'Maternal Bradycardia'
-      case 'maternal-tachycardia': return 'Maternal Tachycardia'
-      case 'maternal-arrhythmia': return 'Maternal Arrhythmia'
+  const getSignalLabel = (signalId: RawSignalId) => {
+    const labels: Record<RawSignalId, string> = {
+      'signal01': 'Signal 01',
+      'signal02': 'Signal 02',
+      'signal03': 'Signal 03',
+      'signal04': 'Signal 04',
+      'signal05': 'Signal 05',
+      'signal06': 'Signal 06',
+      'signal07': 'Signal 07',
+      'signal08': 'Signal 08'
     }
+    return labels[signalId]
+  }
+
+  const getSignalDescription = (signalId: RawSignalId) => {
+    const descriptions: Record<RawSignalId, string> = {
+      'signal01': 'c0 snr06 - Fetal + Maternal',
+      'signal02': 'c0 snr06 - Maternal only',
+      'signal03': 'c1 snr06 - Fetal + Maternal',
+      'signal04': 'c1 snr06 - Maternal only',
+      'signal05': 'c1 snr00 - Fetal + Maternal (high noise)',
+      'signal06': 'c1 snr00 - Maternal only (high noise)',
+      'signal07': 'c1 snr12 - Fetal + Maternal (low noise)',
+      'signal08': 'c1 snr12 - Maternal only (low noise)'
+    }
+    return descriptions[signalId]
   }
 
   const getSignalLabel = (type: SignalType) => {
@@ -272,69 +288,23 @@ export default function ControlPanel({
           </div>
         )}
 
-        {/* Conditions Section - Only in Development Mode */}
-        {isDevelopmentMode && (
+        {/* Raw Signals Section - Only in Development Mode */}
+        {isDevelopmentMode && dataSource === 'raw' && (
           <div className="control-section conditions-section">
             <div className="section-header">
-              <h3 className="section-title">Test Conditions</h3>
+              <h3 className="section-title">Raw Signals (01-08)</h3>
             </div>
             <div className="button-group">
-              <button
-                className={`btn btn-condition ${simulationCondition === 'normal' ? 'active' : ''}`}
-                onClick={() => onConditionChange('normal')}
-                title="Normal pregnancy with healthy vitals"
-              >
-                <span className="btn-label">Normal</span>
-              </button>
-              <button
-                className={`btn btn-condition btn-high-risk ${simulationCondition === 'high-risk' ? 'active' : ''}`}
-                onClick={() => onConditionChange('high-risk')}
-                title="High-risk pregnancy with borderline fetal heart rate"
-              >
-                <span className="btn-label">High-Risk</span>
-              </button>
-              <button
-                className={`btn btn-condition btn-critical ${simulationCondition === 'fetal-bradycardia' ? 'active' : ''}`}
-                onClick={() => onConditionChange('fetal-bradycardia')}
-                title="Fetal heart rate < 110 bpm (Critical)"
-              >
-                <span className="btn-label">Fetal Bradycardia</span>
-              </button>
-              <button
-                className={`btn btn-condition btn-critical ${simulationCondition === 'fetal-tachycardia' ? 'active' : ''}`}
-                onClick={() => onConditionChange('fetal-tachycardia')}
-                title="Fetal heart rate > 180 bpm (Critical)"
-              >
-                <span className="btn-label">Fetal Tachycardia</span>
-              </button>
-              <button
-                className={`btn btn-condition btn-critical ${simulationCondition === 'fetal-arrhythmia' ? 'active' : ''}`}
-                onClick={() => onConditionChange('fetal-arrhythmia')}
-                title="Irregular fetal heart rhythm"
-              >
-                <span className="btn-label">Fetal Arrhythmia</span>
-              </button>
-              <button
-                className={`btn btn-condition btn-maternal ${simulationCondition === 'maternal-bradycardia' ? 'active' : ''}`}
-                onClick={() => onConditionChange('maternal-bradycardia')}
-                title="Maternal heart rate < 50 bpm (Critical)"
-              >
-                <span className="btn-label">Maternal Bradycardia</span>
-              </button>
-              <button
-                className={`btn btn-condition btn-maternal ${simulationCondition === 'maternal-tachycardia' ? 'active' : ''}`}
-                onClick={() => onConditionChange('maternal-tachycardia')}
-                title="Maternal heart rate > 120 bpm (Critical)"
-              >
-                <span className="btn-label">Maternal Tachycardia</span>
-              </button>
-              <button
-                className={`btn btn-condition btn-maternal ${simulationCondition === 'maternal-arrhythmia' ? 'active' : ''}`}
-                onClick={() => onConditionChange('maternal-arrhythmia')}
-                title="Irregular maternal heart rhythm"
-              >
-                <span className="btn-label">Maternal Arrhythmia</span>
-              </button>
+              {(['signal01', 'signal02', 'signal03', 'signal04', 'signal05', 'signal06', 'signal07', 'signal08'] as RawSignalId[]).map((signalId) => (
+                <button
+                  key={signalId}
+                  className={`btn btn-condition ${rawSignalSelection === signalId ? 'active' : ''}`}
+                  onClick={() => onRawSignalChange(signalId)}
+                  title={getSignalDescription(signalId)}
+                >
+                  <span className="btn-label">{getSignalLabel(signalId)}</span>
+                </button>
+              ))}
             </div>
           </div>
         )}
