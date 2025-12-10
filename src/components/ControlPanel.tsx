@@ -49,7 +49,7 @@ export default function ControlPanel({
     }
   }
 
-  const getSignalLabel = (signalId: RawSignalId) => {
+  const getRawSignalLabel = (signalId: RawSignalId) => {
     const labels: Record<RawSignalId, string> = {
       'signal01': 'Signal 01',
       'signal02': 'Signal 02',
@@ -302,7 +302,7 @@ export default function ControlPanel({
                   onClick={() => onRawSignalChange(signalId)}
                   title={getSignalDescription(signalId)}
                 >
-                  <span className="btn-label">{getSignalLabel(signalId)}</span>
+                  <span className="btn-label">{getRawSignalLabel(signalId)}</span>
                 </button>
               ))}
             </div>
