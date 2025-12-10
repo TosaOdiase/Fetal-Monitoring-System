@@ -24,6 +24,7 @@ interface UseArduinoSerialOptions {
   onUnsupportedBrowser?: () => void
   onConnectionError?: () => void
   signalMapping?: SignalMapping
+  onDataReceived?: (data: ArduinoData) => void  // NEW: Callback for immediate data processing
 }
 
 export function useArduinoSerial(options?: UseArduinoSerialOptions) {
@@ -34,6 +35,7 @@ export function useArduinoSerial(options?: UseArduinoSerialOptions) {
   const portRef = useRef<SerialPort | null>(null)
   const readerRef = useRef<ReadableStreamDefaultReader<Uint8Array> | null>(null)
   const bufferRef = useRef<string>('')
+  const dataQueueRef = useRef<ArduinoData[]>([])  // NEW: Queue to prevent data loss
 
   // Helper function to map raw Arduino data to signal types
   const mapRawDataToSignals = useCallback((raw: RawArduinoData): ArduinoData => {
@@ -122,11 +124,14 @@ export function useArduinoSerial(options?: UseArduinoSerialOptions) {
                   const numValue = parseFloat(trimmed)
                   if (!isNaN(numValue)) {
                     // Single value format - assume it's the fetal signal from A2
-                    setLatestData({
+                    const data = {
                       mother: 0,
                       combined: 0,
                       fetus: numValue
-                    })
+                    }
+                    setLatestData(data)
+                    dataQueueRef.current.push(data)  // Add to queue
+                    options?.onDataReceived?.(data)  // Immediate callback
                     continue
                   }
                 }
@@ -166,13 +171,18 @@ export function useArduinoSerial(options?: UseArduinoSerialOptions) {
                   if (data.mother !== undefined &&
                       data.combined !== undefined &&
                       data.fetus !== undefined) {
-                    setLatestData(data as ArduinoData)
+                    const fullData = data as ArduinoData
+                    setLatestData(fullData)
+                    dataQueueRef.current.push(fullData)  // Add to queue
+                    options?.onDataReceived?.(fullData)  // Immediate callback
                   }
                 } else {
                   // Use new channel-based mapping
                   setRawData(raw)
                   const mappedData = mapRawDataToSignals(raw)
                   setLatestData(mappedData)
+                  dataQueueRef.current.push(mappedData)  // Add to queue
+                  options?.onDataReceived?.(mappedData)  // Immediate callback
                 }
               } catch (e) {
                 console.warn('Failed to parse Arduino data:', trimmed)
@@ -208,9 +218,22 @@ export function useArduinoSerial(options?: UseArduinoSerialOptions) {
 
       setIsConnected(false)
       setLatestData(null)
+      dataQueueRef.current = []  // Clear queue on disconnect
     } catch (error) {
       console.error('Failed to disconnect:', error)
     }
+  }, [])
+
+  // Get all queued data points and clear the queue (prevents data loss)
+  const getQueuedData = useCallback((): ArduinoData[] => {
+    const data = [...dataQueueRef.current]
+    dataQueueRef.current = []  // Clear queue after reading
+    return data
+  }, [])
+
+  // Check if there's queued data available
+  const hasQueuedData = useCallback((): boolean => {
+    return dataQueueRef.current.length > 0
   }, [])
 
   return {
@@ -218,6 +241,8 @@ export function useArduinoSerial(options?: UseArduinoSerialOptions) {
     latestData,
     rawData,
     connect,
-    disconnect
+    disconnect,
+    getQueuedData,    // NEW: Get all queued data points
+    hasQueuedData     // NEW: Check if data is available
   }
 }

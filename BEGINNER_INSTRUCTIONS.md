@@ -52,11 +52,14 @@ Follow the same steps as Option 1, but open this file instead.
 ## Connecting Arduino to Web App
 
 1. Upload Arduino code first
-2. Start the web app with `npm run dev`
-3. In the web app, click **"Connect to Arduino"**
-4. Select your Arduino port from the popup
-5. Click **Connect**
-6. You should now see live data!
+2. **IMPORTANT:** Close Arduino Serial Monitor if it's open
+3. Start the web app with `npm run dev`
+4. In the web app, click **"Connect to Arduino"**
+5. Select your Arduino port from the popup
+6. Click **Connect**
+7. Click **"Start Monitoring"** to see live data stream!
+
+**For detailed real-time streaming information, see:** `REAL_TIME_STREAMING_GUIDE.md`
 
 ---
 

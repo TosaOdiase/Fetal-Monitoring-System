@@ -152,7 +152,9 @@ function App() {
     isConnected,
     connect: connectArduino,
     disconnect: disconnectArduino,
-    latestData: arduinoData
+    latestData: arduinoData,
+    getQueuedData,
+    hasQueuedData
   } = useArduinoSerial({
     onUnsupportedBrowser: () => setShowBrowserErrorModal(true),
     onConnectionError: () => setShowConnectionErrorModal(true),
@@ -182,69 +184,84 @@ function App() {
     }
 
     const interval = setInterval(() => {
-      let newDataPoint: EKGDataPoint
+      const newDataPoints: EKGDataPoint[] = []
 
       // PRODUCTION MODE: ONLY use Arduino data
       if (!isDevelopmentMode) {
-        if (!arduinoData) {
-          return // Skip if no Arduino data available
-        }
-        // Apply noise removal to combined signal ONLY
-        const cleanedCombined = signalProcessorRef.current.processSample(arduinoData.combined)
+        // Process ALL queued Arduino data points (prevents data loss)
+        if (hasQueuedData()) {
+          const queuedData = getQueuedData()
+          for (const arduinoSample of queuedData) {
+            // Apply noise removal to combined signal ONLY
+            const cleanedCombined = signalProcessorRef.current.processSample(arduinoSample.combined)
 
-        newDataPoint = {
-          time: sampleCounter.current / 250,
-          mother: arduinoData.mother,
-          combined: cleanedCombined, // ← FILTERED COMBINED SIGNAL
-          fetus: arduinoData.fetus
+            newDataPoints.push({
+              time: sampleCounter.current / 250,
+              mother: arduinoSample.mother,
+              combined: cleanedCombined, // ← FILTERED COMBINED SIGNAL
+              fetus: arduinoSample.fetus
+            })
+            sampleCounter.current++
+          }
+        } else {
+          return // Skip if no Arduino data available
         }
       } else {
         // DEVELOPMENT MODE: Allow simulated, real, or Arduino data
-        if (dataSource === 'arduino' && arduinoData) {
-          // Use Arduino data - apply noise removal to combined signal
-          const cleanedCombined = signalProcessorRef.current.processSample(arduinoData.combined)
+        if (dataSource === 'arduino') {
+          // Process ALL queued Arduino data points
+          if (hasQueuedData()) {
+            const queuedData = getQueuedData()
+            for (const arduinoSample of queuedData) {
+              const cleanedCombined = signalProcessorRef.current.processSample(arduinoSample.combined)
 
-          newDataPoint = {
-            time: sampleCounter.current / 250,
-            mother: arduinoData.mother,
-            combined: cleanedCombined, // ← FILTERED COMBINED SIGNAL
-            fetus: arduinoData.fetus
+              newDataPoints.push({
+                time: sampleCounter.current / 250,
+                mother: arduinoSample.mother,
+                combined: cleanedCombined, // ← FILTERED COMBINED SIGNAL
+                fetus: arduinoSample.fetus
+              })
+              sampleCounter.current++
+            }
           }
         } else if (dataSource === 'real') {
           // Use real PhysioNet ECG data - apply noise removal to combined signal
           const realData = realECGData.getSample()
           const cleanedCombined = signalProcessorRef.current.processSample(realData.combined)
 
-          newDataPoint = {
+          newDataPoints.push({
             time: sampleCounter.current / 250,
             mother: realData.mother,
             combined: cleanedCombined, // ← FILTERED COMBINED SIGNAL
             fetus: realData.fetus
-          }
+          })
+          sampleCounter.current++
         } else {
           // Use simulated data - apply noise removal to combined signal
           const simData = simulatedData.getSample()
           const cleanedCombined = signalProcessorRef.current.processSample(simData.combined)
 
-          newDataPoint = {
+          newDataPoints.push({
             time: sampleCounter.current / 250,
             mother: simData.mother,
             combined: cleanedCombined, // ← FILTERED COMBINED SIGNAL
             fetus: simData.fetus
-          }
+          })
+          sampleCounter.current++
         }
       }
 
-      setEKGData(prev => {
-        const updated = [...prev, newDataPoint]
-        return updated.slice(-maxDataPoints) // Keep only last 5 seconds
-      })
-
-      sampleCounter.current++
+      // Add all new data points to the chart (batch update for better performance)
+      if (newDataPoints.length > 0) {
+        setEKGData(prev => {
+          const updated = [...prev, ...newDataPoints]
+          return updated.slice(-maxDataPoints) // Keep only last 5 seconds
+        })
+      }
     }, 4) // 250 Hz = 4ms interval
 
     return () => clearInterval(interval)
-  }, [isMonitoring, dataSource, arduinoData, simulatedData, realECGData, isDevelopmentMode, isConnected])
+  }, [isMonitoring, dataSource, getQueuedData, hasQueuedData, simulatedData, realECGData, isDevelopmentMode, isConnected])
 
   const handleStartStop = () => {
     if (!isMonitoring) {
