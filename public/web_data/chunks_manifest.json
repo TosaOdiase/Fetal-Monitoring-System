@@ -1,0 +1,438 @@
+{
+  "metadata": {
+    "sampling_rate": 250,
+    "duration_seconds": 300.0,
+    "num_samples": 75000,
+    "maternal_hr": 88.1,
+    "fetal_hr": 160.1,
+    "snr_db": 6,
+    "fetal_scale": 0.3,
+    "source": "PhysioNet sub09 snr06dB l1 c0",
+    "description": "Combined fetal and maternal ECG with 6dB SNR noise"
+  },
+  "chunk_size_samples": 1250,
+  "chunk_duration_seconds": 5.0,
+  "num_chunks": 60,
+  "chunks": [
+    {
+      "index": 0,
+      "filename": "chunk_000.json",
+      "start_time": 0.0,
+      "end_time": 5.0,
+      "num_samples": 1250
+    },
+    {
+      "index": 1,
+      "filename": "chunk_001.json",
+      "start_time": 5.0,
+      "end_time": 10.0,
+      "num_samples": 1250
+    },
+    {
+      "index": 2,
+      "filename": "chunk_002.json",
+      "start_time": 10.0,
+      "end_time": 15.0,
+      "num_samples": 1250
+    },
+    {
+      "index": 3,
+      "filename": "chunk_003.json",
+      "start_time": 15.0,
+      "end_time": 20.0,
+      "num_samples": 1250
+    },
+    {
+      "index": 4,
+      "filename": "chunk_004.json",
+      "start_time": 20.0,
+      "end_time": 25.0,
+      "num_samples": 1250
+    },
+    {
+      "index": 5,
+      "filename": "chunk_005.json",
+      "start_time": 25.0,
+      "end_time": 30.0,
+      "num_samples": 1250
+    },
+    {
+      "index": 6,
+      "filename": "chunk_006.json",
+      "start_time": 30.0,
+      "end_time": 35.0,
+      "num_samples": 1250
+    },
+    {
+      "index": 7,
+      "filename": "chunk_007.json",
+      "start_time": 35.0,
+      "end_time": 40.0,
+      "num_samples": 1250
+    },
+    {
+      "index": 8,
+      "filename": "chunk_008.json",
+      "start_time": 40.0,
+      "end_time": 45.0,
+      "num_samples": 1250
+    },
+    {
+      "index": 9,
+      "filename": "chunk_009.json",
+      "start_time": 45.0,
+      "end_time": 50.0,
+      "num_samples": 1250
+    },
+    {
+      "index": 10,
+      "filename": "chunk_010.json",
+      "start_time": 50.0,
+      "end_time": 55.0,
+      "num_samples": 1250
+    },
+    {
+      "index": 11,
+      "filename": "chunk_011.json",
+      "start_time": 55.0,
+      "end_time": 60.0,
+      "num_samples": 1250
+    },
+    {
+      "index": 12,
+      "filename": "chunk_012.json",
+      "start_time": 60.0,
+      "end_time": 65.0,
+      "num_samples": 1250
+    },
+    {
+      "index": 13,
+      "filename": "chunk_013.json",
+      "start_time": 65.0,
+      "end_time": 70.0,
+      "num_samples": 1250
+    },
+    {
+      "index": 14,
+      "filename": "chunk_014.json",
+      "start_time": 70.0,
+      "end_time": 75.0,
+      "num_samples": 1250
+    },
+    {
+      "index": 15,
+      "filename": "chunk_015.json",
+      "start_time": 75.0,
+      "end_time": 80.0,
+      "num_samples": 1250
+    },
+    {
+      "index": 16,
+      "filename": "chunk_016.json",
+      "start_time": 80.0,
+      "end_time": 85.0,
+      "num_samples": 1250
+    },
+    {
+      "index": 17,
+      "filename": "chunk_017.json",
+      "start_time": 85.0,
+      "end_time": 90.0,
+      "num_samples": 1250
+    },
+    {
+      "index": 18,
+      "filename": "chunk_018.json",
+      "start_time": 90.0,
+      "end_time": 95.0,
+      "num_samples": 1250
+    },
+    {
+      "index": 19,
+      "filename": "chunk_019.json",
+      "start_time": 95.0,
+      "end_time": 100.0,
+      "num_samples": 1250
+    },
+    {
+      "index": 20,
+      "filename": "chunk_020.json",
+      "start_time": 100.0,
+      "end_time": 105.0,
+      "num_samples": 1250
+    },
+    {
+      "index": 21,
+      "filename": "chunk_021.json",
+      "start_time": 105.0,
+      "end_time": 110.0,
+      "num_samples": 1250
+    },
+    {
+      "index": 22,
+      "filename": "chunk_022.json",
+      "start_time": 110.0,
+      "end_time": 115.0,
+      "num_samples": 1250
+    },
+    {
+      "index": 23,
+      "filename": "chunk_023.json",
+      "start_time": 115.0,
+      "end_time": 120.0,
+      "num_samples": 1250
+    },
+    {
+      "index": 24,
+      "filename": "chunk_024.json",
+      "start_time": 120.0,
+      "end_time": 125.0,
+      "num_samples": 1250
+    },
+    {
+      "index": 25,
+      "filename": "chunk_025.json",
+      "start_time": 125.0,
+      "end_time": 130.0,
+      "num_samples": 1250
+    },
+    {
+      "index": 26,
+      "filename": "chunk_026.json",
+      "start_time": 130.0,
+      "end_time": 135.0,
+      "num_samples": 1250
+    },
+    {
+      "index": 27,
+      "filename": "chunk_027.json",
+      "start_time": 135.0,
+      "end_time": 140.0,
+      "num_samples": 1250
+    },
+    {
+      "index": 28,
+      "filename": "chunk_028.json",
+      "start_time": 140.0,
+      "end_time": 145.0,
+      "num_samples": 1250
+    },
+    {
+      "index": 29,
+      "filename": "chunk_029.json",
+      "start_time": 145.0,
+      "end_time": 150.0,
+      "num_samples": 1250
+    },
+    {
+      "index": 30,
+      "filename": "chunk_030.json",
+      "start_time": 150.0,
+      "end_time": 155.0,
+      "num_samples": 1250
+    },
+    {
+      "index": 31,
+      "filename": "chunk_031.json",
+      "start_time": 155.0,
+      "end_time": 160.0,
+      "num_samples": 1250
+    },
+    {
+      "index": 32,
+      "filename": "chunk_032.json",
+      "start_time": 160.0,
+      "end_time": 165.0,
+      "num_samples": 1250
+    },
+    {
+      "index": 33,
+      "filename": "chunk_033.json",
+      "start_time": 165.0,
+      "end_time": 170.0,
+      "num_samples": 1250
+    },
+    {
+      "index": 34,
+      "filename": "chunk_034.json",
+      "start_time": 170.0,
+      "end_time": 175.0,
+      "num_samples": 1250
+    },
+    {
+      "index": 35,
+      "filename": "chunk_035.json",
+      "start_time": 175.0,
+      "end_time": 180.0,
+      "num_samples": 1250
+    },
+    {
+      "index": 36,
+      "filename": "chunk_036.json",
+      "start_time": 180.0,
+      "end_time": 185.0,
+      "num_samples": 1250
+    },
+    {
+      "index": 37,
+      "filename": "chunk_037.json",
+      "start_time": 185.0,
+      "end_time": 190.0,
+      "num_samples": 1250
+    },
+    {
+      "index": 38,
+      "filename": "chunk_038.json",
+      "start_time": 190.0,
+      "end_time": 195.0,
+      "num_samples": 1250
+    },
+    {
+      "index": 39,
+      "filename": "chunk_039.json",
+      "start_time": 195.0,
+      "end_time": 200.0,
+      "num_samples": 1250
+    },
+    {
+      "index": 40,
+      "filename": "chunk_040.json",
+      "start_time": 200.0,
+      "end_time": 205.0,
+      "num_samples": 1250
+    },
+    {
+      "index": 41,
+      "filename": "chunk_041.json",
+      "start_time": 205.0,
+      "end_time": 210.0,
+      "num_samples": 1250
+    },
+    {
+      "index": 42,
+      "filename": "chunk_042.json",
+      "start_time": 210.0,
+      "end_time": 215.0,
+      "num_samples": 1250
+    },
+    {
+      "index": 43,
+      "filename": "chunk_043.json",
+      "start_time": 215.0,
+      "end_time": 220.0,
+      "num_samples": 1250
+    },
+    {
+      "index": 44,
+      "filename": "chunk_044.json",
+      "start_time": 220.0,
+      "end_time": 225.0,
+      "num_samples": 1250
+    },
+    {
+      "index": 45,
+      "filename": "chunk_045.json",
+      "start_time": 225.0,
+      "end_time": 230.0,
+      "num_samples": 1250
+    },
+    {
+      "index": 46,
+      "filename": "chunk_046.json",
+      "start_time": 230.0,
+      "end_time": 235.0,
+      "num_samples": 1250
+    },
+    {
+      "index": 47,
+      "filename": "chunk_047.json",
+      "start_time": 235.0,
+      "end_time": 240.0,
+      "num_samples": 1250
+    },
+    {
+      "index": 48,
+      "filename": "chunk_048.json",
+      "start_time": 240.0,
+      "end_time": 245.0,
+      "num_samples": 1250
+    },
+    {
+      "index": 49,
+      "filename": "chunk_049.json",
+      "start_time": 245.0,
+      "end_time": 250.0,
+      "num_samples": 1250
+    },
+    {
+      "index": 50,
+      "filename": "chunk_050.json",
+      "start_time": 250.0,
+      "end_time": 255.0,
+      "num_samples": 1250
+    },
+    {
+      "index": 51,
+      "filename": "chunk_051.json",
+      "start_time": 255.0,
+      "end_time": 260.0,
+      "num_samples": 1250
+    },
+    {
+      "index": 52,
+      "filename": "chunk_052.json",
+      "start_time": 260.0,
+      "end_time": 265.0,
+      "num_samples": 1250
+    },
+    {
+      "index": 53,
+      "filename": "chunk_053.json",
+      "start_time": 265.0,
+      "end_time": 270.0,
+      "num_samples": 1250
+    },
+    {
+      "index": 54,
+      "filename": "chunk_054.json",
+      "start_time": 270.0,
+      "end_time": 275.0,
+      "num_samples": 1250
+    },
+    {
+      "index": 55,
+      "filename": "chunk_055.json",
+      "start_time": 275.0,
+      "end_time": 280.0,
+      "num_samples": 1250
+    },
+    {
+      "index": 56,
+      "filename": "chunk_056.json",
+      "start_time": 280.0,
+      "end_time": 285.0,
+      "num_samples": 1250
+    },
+    {
+      "index": 57,
+      "filename": "chunk_057.json",
+      "start_time": 285.0,
+      "end_time": 290.0,
+      "num_samples": 1250
+    },
+    {
+      "index": 58,
+      "filename": "chunk_058.json",
+      "start_time": 290.0,
+      "end_time": 295.0,
+      "num_samples": 1250
+    },
+    {
+      "index": 59,
+      "filename": "chunk_059.json",
+      "start_time": 295.0,
+      "end_time": 300.0,
+      "num_samples": 1250
+    }
+  ]
+}

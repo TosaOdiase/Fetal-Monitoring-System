@@ -23,6 +23,48 @@
   letter-spacing: 1px;
 }
 
+.hrm-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.info-icon-button {
+  background: none;
+  border: 2px solid rgba(0, 255, 65, 0.5);
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  color: #00ff41;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.info-icon-button:hover {
+  background: rgba(0, 255, 65, 0.2);
+  border-color: #00ff41;
+  transform: scale(1.1);
+  box-shadow: 0 0 10px rgba(0, 255, 65, 0.5);
+}
+
+.info-icon-button:active {
+  transform: scale(0.95);
+}
+
+.info-icon {
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 4px rgba(0, 255, 65, 0.6));
+  transition: filter 0.2s ease;
+}
+
+.info-icon-button:hover .info-icon {
+  filter: drop-shadow(0 0 8px rgba(0, 255, 65, 0.9));
+}
+
 .hrm-status {
   padding: 4px 12px;
   border-radius: 4px;

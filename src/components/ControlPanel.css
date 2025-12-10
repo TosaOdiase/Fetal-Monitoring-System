@@ -414,6 +414,84 @@
 }
 
 /* Conditions Section */
+/* Signal Mapping Section */
+.signal-mapping-section {
+  grid-column: 1 / -1;
+  background-color: rgba(0, 255, 65, 0.05);
+  border: 2px solid rgba(0, 255, 65, 0.3);
+}
+
+.signal-mapping-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mapping-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  background-color: #2a2a2a;
+  border-radius: 6px;
+  border: 1px solid #3a3a3a;
+}
+
+.channel-label {
+  color: #00ff41;
+  font-size: 13px;
+  font-weight: 600;
+  min-width: 130px;
+  font-family: 'Courier New', monospace;
+}
+
+.mapping-select {
+  flex: 1;
+  padding: 8px 12px;
+  background-color: #1a1a1a;
+  border: 2px solid #4a4a4a;
+  border-radius: 4px;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.mapping-select:hover:not(:disabled) {
+  border-color: #00ff41;
+  box-shadow: 0 0 8px rgba(0, 255, 65, 0.3);
+}
+
+.mapping-select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.mapping-select:focus {
+  outline: none;
+  border-color: #00ff41;
+  box-shadow: 0 0 12px rgba(0, 255, 65, 0.4);
+}
+
+.mapping-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 8px 12px;
+  background-color: rgba(0, 255, 65, 0.1);
+  border-radius: 4px;
+  color: #00ff41;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.mapping-info svg {
+  flex-shrink: 0;
+  color: #00ff41;
+}
+
 .conditions-section .button-group {
   max-height: 180px;
   overflow-y: auto;

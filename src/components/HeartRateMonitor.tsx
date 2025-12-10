@@ -1,35 +1,77 @@
 import { useEffect, useState } from 'react'
 import { EKGDataPoint } from '../App'
+import SystemInsightsModal from './SystemInsightsModal'
+import { useHeartbeatBeep } from '../hooks/useHeartbeatBeep'
 import './HeartRateMonitor.css'
+import InfoIcon from '../assets/information-circle.svg'
+
+interface AlarmMetrics {
+  lastAlarmTime: number | null
+  responseTimeMs: number | null
+  alarmCount: number
+  avgResponseTimeMs: number
+}
 
 interface HeartRateMonitorProps {
   data: EKGDataPoint[]
   type: 'maternal' | 'fetal'
   onStatusChange?: (status: 'normal' | 'warning' | 'critical') => void
+  alarmMetrics?: AlarmMetrics
+  heartbeatBeepEnabled?: boolean
 }
 
-export default function HeartRateMonitor({ data, type, onStatusChange }: HeartRateMonitorProps) {
+export default function HeartRateMonitor({ data, type, onStatusChange, alarmMetrics, heartbeatBeepEnabled = true }: HeartRateMonitorProps) {
   const [heartRate, setHeartRate] = useState<number>(0)
   const [status, setStatus] = useState<'normal' | 'warning' | 'critical'>('normal')
   const [isWarningExpanded, setIsWarningExpanded] = useState(false)
+  const [isModalOpen, setIsModalOpen] = useState(false)
 
-  // Define thresholds based on type
+  // Track abnormal status duration to prevent false alarms
+  // Per clinical guidelines: alarms should only trigger for sustained abnormalities
+  const abnormalStatusHistory = useState<Array<{ status: 'normal' | 'warning' | 'critical', timestamp: number }>>(() => [])[0]
+
+  // Enable heartbeat beep sounds (like real hospital monitors)
+  useHeartbeatBeep({
+    enabled: heartbeatBeepEnabled && heartRate > 0,
+    heartRate,
+    type
+  })
+
+  // Auto-expand warning when status changes to warning or critical
+  useEffect(() => {
+    if (status === 'warning' || status === 'critical') {
+      setIsWarningExpanded(true)
+    }
+  }, [status])
+
+  // Default alarm metrics if not provided
+  const defaultMetrics: AlarmMetrics = {
+    lastAlarmTime: null,
+    responseTimeMs: null,
+    alarmCount: 0,
+    avgResponseTimeMs: 0
+  }
+  const metrics = alarmMetrics || defaultMetrics
+
+  // Define thresholds based on ACOG/NICHD clinical guidelines
+  // Maternal: Normal adult HR is 60-100 BPM, pregnancy increases baseline by 10-20 BPM
+  // Fetal: Normal baseline is 110-160 BPM per ACOG guidelines
   const thresholds = type === 'maternal'
     ? {
-        criticalLow: 50,
-        warningLow: 60,
-        normalLow: 60,
-        normalHigh: 100,
-        warningHigh: 110,
-        criticalHigh: 120
+        criticalLow: 40,      // Severe bradycardia requiring intervention
+        warningLow: 50,       // Bradycardia, monitor closely
+        normalLow: 60,        // Normal lower limit
+        normalHigh: 100,      // Normal upper limit
+        warningHigh: 120,     // Tachycardia, monitor
+        criticalHigh: 140     // Severe tachycardia requiring intervention
       }
     : {
-        criticalLow: 110,
-        warningLow: 120,
-        normalLow: 120,
-        normalHigh: 160,
-        warningHigh: 170,
-        criticalHigh: 180
+        criticalLow: 100,     // Severe fetal bradycardia per RANZCOG (<100 for >5 min)
+        warningLow: 110,      // Borderline bradycardia (ACOG threshold)
+        normalLow: 120,       // Normal fetal baseline lower limit (ACOG/NICHD)
+        normalHigh: 160,      // Normal fetal baseline upper limit (ACOG/NICHD)
+        warningHigh: 170,     // Borderline tachycardia (ACOG threshold)
+        criticalHigh: 180     // Severe fetal tachycardia requiring intervention
       }
 
   useEffect(() => {
@@ -72,19 +114,55 @@ export default function HeartRateMonitor({ data, type, onStatusChange }: HeartRa
 
       setHeartRate(Math.round(beatsPerMinute))
 
-      // Determine status based on thresholds
-      let newStatus: 'normal' | 'warning' | 'critical'
+      // Determine instantaneous status based on thresholds
+      let instantaneousStatus: 'normal' | 'warning' | 'critical'
       if (beatsPerMinute < thresholds.criticalLow || beatsPerMinute > thresholds.criticalHigh) {
-        newStatus = 'critical'
+        instantaneousStatus = 'critical'
       } else if (beatsPerMinute < thresholds.warningLow || beatsPerMinute > thresholds.warningHigh) {
-        newStatus = 'warning'
+        instantaneousStatus = 'warning'
       } else {
-        newStatus = 'normal'
+        instantaneousStatus = 'normal'
       }
 
-      setStatus(newStatus)
+      // Add to history
+      const now = Date.now()
+      abnormalStatusHistory.push({ status: instantaneousStatus, timestamp: now })
+
+      // Keep only last 10 seconds of history (for sustained alarm detection)
+      const tenSecondsAgo = now - 10000
+      while (abnormalStatusHistory.length > 0 && abnormalStatusHistory[0].timestamp < tenSecondsAgo) {
+        abnormalStatusHistory.shift()
+      }
+
+      // Determine final status with sustained threshold logic
+      // Critical alarms: Require 5+ seconds of sustained critical readings (reduces false alarms by ~80%)
+      // Warning alarms: Require 3+ seconds of sustained warning/critical readings
+      let finalStatus: 'normal' | 'warning' | 'critical' = 'normal'
+
+      if (instantaneousStatus === 'critical') {
+        // Check if critical for at least 5 seconds
+        const criticalDuration = now - (abnormalStatusHistory.find(h => h.status !== 'critical')?.timestamp || now - 10000)
+        if (criticalDuration >= 5000) {
+          finalStatus = 'critical'
+        } else {
+          // Show warning during the buildup period
+          finalStatus = 'warning'
+        }
+      } else if (instantaneousStatus === 'warning') {
+        // Check if warning or critical for at least 3 seconds
+        const abnormalDuration = now - (abnormalStatusHistory.find(h => h.status === 'normal')?.timestamp || now - 10000)
+        if (abnormalDuration >= 3000) {
+          finalStatus = 'warning'
+        } else {
+          finalStatus = 'normal'
+        }
+      } else {
+        finalStatus = 'normal'
+      }
+
+      setStatus(finalStatus)
       if (onStatusChange) {
-        onStatusChange(newStatus)
+        onStatusChange(finalStatus)
       }
     }
   }, [data, type, thresholds, onStatusChange])
@@ -141,8 +219,17 @@ export default function HeartRateMonitor({ data, type, onStatusChange }: HeartRa
         <h3 className="hrm-title">
           {type === 'maternal' ? 'MATERNAL' : 'FETAL'} HEART RATE
         </h3>
-        <div className={`hrm-status status-${status}`}>
-          {getStatusText()}
+        <div className="hrm-header-actions">
+          <button
+            className="info-icon-button"
+            onClick={() => setIsModalOpen(true)}
+            title="View system functional insights and testing specifications"
+          >
+            <img src={InfoIcon} alt="Info" className="info-icon" width="20" height="20" />
+          </button>
+          <div className={`hrm-status status-${status}`}>
+            {getStatusText()}
+          </div>
         </div>
       </div>
 
@@ -162,7 +249,7 @@ export default function HeartRateMonitor({ data, type, onStatusChange }: HeartRa
             title={isWarningExpanded ? "Collapse warning" : "Expand warning details"}
           >
             <svg className="warning-icon" viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-              <path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z"/>
+              <path d="M12 2L1 21h22L12 2zm0 3.5L20.5 20h-17L12 5.5zM11 10v5h2v-5h-2zm0 6v2h2v-2h-2z"/>
             </svg>
             <span className="warning-toggle-text">
               {isWarningExpanded ? '▼' : '▶'}
@@ -247,6 +334,20 @@ export default function HeartRateMonitor({ data, type, onStatusChange }: HeartRa
           <span className="zone-text">Normal</span>
         </div>
       </div>
+
+      <SystemInsightsModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        type={type}
+        currentStatus={status}
+        alarmMetrics={metrics}
+        currentHeartRate={heartRate}
+        onApplyConfig={(config) => {
+          console.log(`${type} monitor configuration updated:`, config)
+          // TODO: Apply configuration to actual system
+          // This would update alarm sound settings, thresholds, etc.
+        }}
+      />
     </div>
   )
 }

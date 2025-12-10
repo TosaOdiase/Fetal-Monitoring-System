@@ -65,6 +65,41 @@
   color: #ff4444;
 }
 
+/* Data Status Warning */
+.data-status-warning {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 8px 16px;
+  background: rgba(255, 170, 0, 0.15);
+  border: 2px solid rgba(255, 170, 0, 0.6);
+  border-radius: 6px;
+  color: #ffaa00;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: 'Courier New', monospace;
+  letter-spacing: 0.3px;
+  animation: warning-pulse 2s ease-in-out infinite;
+}
+
+.data-status-warning svg {
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 4px rgba(255, 170, 0, 0.6));
+}
+
+@keyframes warning-pulse {
+  0%, 100% {
+    border-color: rgba(255, 170, 0, 0.6);
+    box-shadow: 0 0 10px rgba(255, 170, 0, 0.3);
+  }
+  50% {
+    border-color: rgba(255, 170, 0, 0.9);
+    box-shadow: 0 0 20px rgba(255, 170, 0, 0.5);
+  }
+}
+
 .main-content {
   flex: 1;
   background-color: #2a2a2a;
@@ -82,6 +117,64 @@
   display: flex;
   flex-direction: column;
   gap: 15px;
+}
+
+/* Alarm Toggle Button */
+.alarm-toggle-button {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: bold;
+  letter-spacing: 1px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: all 0.3s ease;
+  font-family: 'Courier New', monospace;
+}
+
+.alarm-toggle-button.active {
+  background: rgba(0, 255, 65, 0.15);
+  border: 3px solid #00ff41;
+  color: #00ff41;
+  box-shadow: 0 0 15px rgba(0, 255, 65, 0.3);
+}
+
+.alarm-toggle-button.active:hover {
+  background: rgba(0, 255, 65, 0.25);
+  box-shadow: 0 0 20px rgba(0, 255, 65, 0.5);
+  transform: scale(1.02);
+}
+
+.alarm-toggle-button.silenced {
+  background: rgba(255, 170, 0, 0.15);
+  border: 3px solid rgba(255, 170, 0, 0.6);
+  color: #ffaa00;
+  opacity: 0.8;
+}
+
+.alarm-toggle-button.silenced:hover {
+  background: rgba(255, 170, 0, 0.25);
+  border-color: #ffaa00;
+  opacity: 1;
+  transform: scale(1.02);
+}
+
+.alarm-toggle-button:active {
+  transform: scale(0.98);
+}
+
+.alarm-toggle-button .silence-icon,
+.alarm-toggle-button .alarm-icon {
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 4px currentColor);
+}
+
+.alarm-toggle-button .toggle-text {
+  font-size: 13px;
 }
 
 .charts-area {
@@ -200,4 +293,75 @@
   color: #666666;
   font-size: 20px;
   letter-spacing: 4px;
+}
+
+/* Standalone Silence Alarm Button */
+.silence-alarm-button-standalone {
+  width: 100%;
+  padding: 16px;
+  background: rgba(0, 255, 65, 0.15);
+  border: 2px solid #00ff41;
+  border-radius: 8px;
+  color: #00ff41;
+  font-size: 13px;
+  font-weight: bold;
+  letter-spacing: 1.5px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+  margin-top: auto;
+}
+
+.silence-alarm-button-standalone:hover {
+  background: rgba(0, 255, 65, 0.25);
+  box-shadow: 0 0 20px rgba(0, 255, 65, 0.6);
+  transform: scale(1.03);
+}
+
+.silence-alarm-button-standalone:active {
+  transform: scale(0.97);
+}
+
+.silence-alarm-button-standalone .silence-icon {
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 6px rgba(0, 255, 65, 0.7));
+}
+
+.silence-alarm-button-standalone .silence-text {
+  font-size: 14px;
+  text-align: center;
+}
+
+/* Alarm Silenced Indicator - Standalone */
+.alarm-silenced-indicator-standalone {
+  width: 100%;
+  padding: 12px 16px;
+  background: rgba(0, 255, 65, 0.1);
+  border: 2px solid rgba(0, 255, 65, 0.5);
+  border-radius: 8px;
+  color: #00ff41;
+  font-size: 12px;
+  font-weight: bold;
+  letter-spacing: 1.5px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  opacity: 0.7;
+  margin-top: auto;
+}
+
+.alarm-silenced-indicator-standalone .silence-icon {
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 4px rgba(0, 255, 65, 0.5));
+}
+
+.alarm-silenced-indicator-standalone .silence-text {
+  font-size: 12px;
+  text-align: center;
 }

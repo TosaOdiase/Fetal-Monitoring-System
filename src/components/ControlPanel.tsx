@@ -1,4 +1,5 @@
 import { ScreenType, ViewMode, SimulationCondition } from '../App'
+import { SignalMapping, SignalType } from '../hooks/useArduinoSerial'
 import './ControlPanel.css'
 
 interface ControlPanelProps {
@@ -16,6 +17,8 @@ interface ControlPanelProps {
   onToggleDevelopmentMode: () => void
   simulationCondition: SimulationCondition
   onConditionChange: (condition: SimulationCondition) => void
+  signalMapping?: SignalMapping
+  onSignalMappingChange?: (mapping: SignalMapping) => void
 }
 
 export default function ControlPanel({
@@ -32,7 +35,9 @@ export default function ControlPanel({
   isDevelopmentMode,
   onToggleDevelopmentMode,
   simulationCondition,
-  onConditionChange
+  onConditionChange,
+  signalMapping,
+  onSignalMappingChange
 }: ControlPanelProps) {
   const getViewModeLabel = (mode: ViewMode) => {
     switch(mode) {
@@ -53,6 +58,24 @@ export default function ControlPanel({
       case 'maternal-bradycardia': return 'Maternal Bradycardia'
       case 'maternal-tachycardia': return 'Maternal Tachycardia'
       case 'maternal-arrhythmia': return 'Maternal Arrhythmia'
+    }
+  }
+
+  const getSignalLabel = (type: SignalType) => {
+    switch(type) {
+      case 'maternal': return 'Maternal'
+      case 'fetal': return 'Fetal'
+      case 'combined': return 'Combined'
+      case 'none': return 'None'
+    }
+  }
+
+  const handleChannelMapping = (channel: 'channel1' | 'channel2' | 'channel3', signalType: SignalType) => {
+    if (signalMapping && onSignalMappingChange) {
+      onSignalMappingChange({
+        ...signalMapping,
+        [channel]: signalType
+      })
     }
   }
 
@@ -147,14 +170,16 @@ export default function ControlPanel({
               <span className="btn-label">{isMonitoring ? 'Stop' : 'Start'}</span>
               <span className="btn-key">SPACE</span>
             </button>
-            <button
-              className="btn btn-action btn-secondary"
-              onClick={onClear}
-              title="Clear all data (C)"
-            >
-              <span className="btn-label">Clear</span>
-              <span className="btn-key">C</span>
-            </button>
+            {!isMonitoring && (
+              <button
+                className="btn btn-action btn-secondary"
+                onClick={onClear}
+                title="Clear all data (C)"
+              >
+                <span className="btn-label">Clear</span>
+                <span className="btn-key">C</span>
+              </button>
+            )}
             {!isDevelopmentMode && (
               <button
                 className={`btn btn-action btn-arduino ${isArduinoConnected ? 'connected' : ''}`}
@@ -182,6 +207,70 @@ export default function ControlPanel({
             <span className={`mode-label ${!isDevelopmentMode ? 'active' : ''}`}>Production</span>
           </div>
         </div>
+
+        {/* Arduino Signal Mapping - Only when Arduino is connected */}
+        {!isDevelopmentMode && isArduinoConnected && signalMapping && onSignalMappingChange && (
+          <div className="control-section signal-mapping-section">
+            <div className="section-header">
+              <h3 className="section-title">Arduino Signal Mapping</h3>
+            </div>
+            <div className="signal-mapping-grid">
+              {/* Channel 1 (A0) */}
+              <div className="mapping-row">
+                <span className="channel-label">Channel 1 (A0):</span>
+                <select
+                  className="mapping-select"
+                  value={signalMapping.channel1}
+                  onChange={(e) => handleChannelMapping('channel1', e.target.value as SignalType)}
+                  disabled={isMonitoring}
+                >
+                  <option value="maternal">Maternal</option>
+                  <option value="fetal">Fetal</option>
+                  <option value="combined">Combined</option>
+                  <option value="none">None</option>
+                </select>
+              </div>
+              {/* Channel 2 (A1) */}
+              <div className="mapping-row">
+                <span className="channel-label">Channel 2 (A1):</span>
+                <select
+                  className="mapping-select"
+                  value={signalMapping.channel2}
+                  onChange={(e) => handleChannelMapping('channel2', e.target.value as SignalType)}
+                  disabled={isMonitoring}
+                >
+                  <option value="maternal">Maternal</option>
+                  <option value="fetal">Fetal</option>
+                  <option value="combined">Combined</option>
+                  <option value="none">None</option>
+                </select>
+              </div>
+              {/* Channel 3 (A2) */}
+              <div className="mapping-row">
+                <span className="channel-label">Channel 3 (A2):</span>
+                <select
+                  className="mapping-select"
+                  value={signalMapping.channel3}
+                  onChange={(e) => handleChannelMapping('channel3', e.target.value as SignalType)}
+                  disabled={isMonitoring}
+                >
+                  <option value="maternal">Maternal</option>
+                  <option value="fetal">Fetal</option>
+                  <option value="combined">Combined</option>
+                  <option value="none">None</option>
+                </select>
+              </div>
+            </div>
+            <div className="mapping-info">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+                <circle cx="12" cy="11.9999" r="9" stroke="currentColor" stroke-width="2.5" fill="none"/>
+                <rect x="12" y="8" width="0.01" height="0.01" stroke="currentColor" stroke-width="3.75"/>
+                <path d="M12 12V16" stroke="currentColor" stroke-width="2.5"/>
+              </svg>
+              <span>Configure which Arduino input maps to each signal type. Changes take effect on next start.</span>
+            </div>
+          </div>
+        )}
 
         {/* Conditions Section - Only in Development Mode */}
         {isDevelopmentMode && (
