@@ -135,9 +135,43 @@
       "mecg_max": 1.4363333333333332,
       "fecg_min": 0.0,
       "fecg_max": 0.0
+    },
+    {
+      "signal_id": "signal09",
+      "name": "Signal 09",
+      "description": "sub01 c0 snr06 - Fetal + Maternal ECG",
+      "sampling_rate": 250,
+      "duration_seconds": 300.0,
+      "num_samples": 75000,
+      "has_fetal": true,
+      "has_maternal": true,
+      "snr": "06dB",
+      "channel": "c0",
+      "source": "WFDB files (direct)",
+      "mecg_min": -0.8543333333333333,
+      "mecg_max": 2.151666666666667,
+      "fecg_min": -0.27566666666666667,
+      "fecg_max": 0.20466666666666666
+    },
+    {
+      "signal_id": "signal10",
+      "name": "Signal 10",
+      "description": "sub01 c0 snr06 - Maternal ECG only",
+      "sampling_rate": 250,
+      "duration_seconds": 300.0,
+      "num_samples": 75000,
+      "has_fetal": false,
+      "has_maternal": true,
+      "snr": "06dB",
+      "channel": "c0",
+      "source": "WFDB files (direct)",
+      "mecg_min": -0.8543333333333333,
+      "mecg_max": 2.151666666666667,
+      "fecg_min": 0.0,
+      "fecg_max": 0.0
     }
   ],
-  "total_signals": 8,
+  "total_signals": 10,
   "sampling_rate": 250,
   "source": "WFDB files (direct conversion)"
 }

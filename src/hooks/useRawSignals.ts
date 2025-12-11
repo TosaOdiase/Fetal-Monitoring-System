@@ -10,10 +10,11 @@ import { useState, useEffect, useRef } from 'react'
 import { EKGDataPoint } from '../App'
 
 export type RawSignalPair = 
-  | 'pair01'  // Signal 1-2: c0 snr06
+  | 'pair01'  // Signal 9-10: sub01 c0 snr06
   | 'pair02'  // Signal 3-4: c1 snr06
   | 'pair03'  // Signal 5-6: c1 snr00
   | 'pair04'  // Signal 7-8: c1 snr12
+  | 'pair06'  // Fetal Bradycardia alarm
 
 export interface RawSignalMetadata {
   signal_pair: RawSignalPair
@@ -36,10 +37,10 @@ interface UseRawSignalsOptions {
 // Signal pair definitions
 const SIGNAL_PAIRS: Record<RawSignalPair, { combined: string, maternal: string, name: string, description: string, snr: string, channel: string }> = {
   'pair01': {
-    combined: 'signal01',  // fecg + mecg (c0 snr06)
-    maternal: 'signal02',  // mecg (c0 snr06)
+    combined: 'signal09',  // fecg + mecg (sub01 c0 snr06)
+    maternal: 'signal10',  // mecg (sub01 c0 snr06)
     name: 'Pair 01',
-    description: 'c0 snr06 - Extract fetal via subtraction',
+    description: 'sub01 c0 snr06 - Extract fetal via subtraction',
     snr: '06dB',
     channel: 'c0'
   },
@@ -66,6 +67,14 @@ const SIGNAL_PAIRS: Record<RawSignalPair, { combined: string, maternal: string, 
     description: 'c1 snr12 - Extract fetal via subtraction (low noise)',
     snr: '12dB',
     channel: 'c1'
+  },
+  'pair06': {
+    combined: 'signal01',  // fecg + mecg (using signal01 for bradycardia demo)
+    maternal: 'signal02',  // mecg (using signal02 for bradycardia demo)
+    name: 'Fetal B...',
+    description: 'Fetal Bradycardia - Alarm condition',
+    snr: '06dB',
+    channel: 'c0'
   }
 }
 

@@ -54,17 +54,19 @@ export default function ControlPanel({
       'pair01': 'Pair 01',
       'pair02': 'Pair 02',
       'pair03': 'Pair 03',
-      'pair04': 'Pair 04'
+      'pair04': 'Pair 04',
+      'pair06': 'Fetal B...'
     }
     return labels[signalPair]
   }
 
   const getSignalDescription = (signalPair: RawSignalPair) => {
     const descriptions: Record<RawSignalPair, string> = {
-      'pair01': 'c0 snr06 - Extract fetal via subtraction',
+      'pair01': 'sub01 c0 snr06 - Extract fetal via subtraction',
       'pair02': 'c1 snr06 - Extract fetal via subtraction',
       'pair03': 'c1 snr00 - Extract fetal via subtraction (high noise)',
-      'pair04': 'c1 snr12 - Extract fetal via subtraction (low noise)'
+      'pair04': 'c1 snr12 - Extract fetal via subtraction (low noise)',
+      'pair06': 'Fetal Bradycardia - Alarm condition'
     }
     return descriptions[signalPair]
   }
@@ -298,12 +300,22 @@ export default function ControlPanel({
                   <span className="btn-label">{getRawSignalLabel(signalPair)}</span>
                 </button>
               ))}
+              {/* Fetal Bradycardia Alarm - Red styling */}
+              <button
+                key="pair06"
+                className={`btn btn-condition btn-bradycardia ${rawSignalSelection === 'pair06' ? 'active' : ''}`}
+                onClick={() => onRawSignalChange('pair06')}
+                title={getSignalDescription('pair06')}
+              >
+                <span className="btn-label">{getRawSignalLabel('pair06')}</span>
+              </button>
             </div>
             <div className="signal-pair-info">
-              <p><strong>Pair 01:</strong> c0 snr06 - Fetal extracted via subtraction</p>
+              <p><strong>Pair 01:</strong> sub01 c0 snr06 - Fetal extracted via subtraction</p>
               <p><strong>Pair 02:</strong> c1 snr06 - Fetal extracted via subtraction</p>
               <p><strong>Pair 03:</strong> c1 snr00 - Fetal extracted via subtraction (high noise)</p>
               <p><strong>Pair 04:</strong> c1 snr12 - Fetal extracted via subtraction (low noise)</p>
+              <p className="bradycardia-alarm"><strong>Fetal B...:</strong> Fetal Bradycardia - Alarm condition</p>
             </div>
           </div>
         )}

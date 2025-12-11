@@ -12,10 +12,11 @@ interface SignalPairChangeModalProps {
 }
 
 const pairNames: Record<RawSignalPair, string> = {
-  'pair01': 'Pair 01 (c0 snr06)',
+  'pair01': 'Pair 01 (sub01 c0 snr06)',
   'pair02': 'Pair 02 (c1 snr06)',
   'pair03': 'Pair 03 (c1 snr00)',
-  'pair04': 'Pair 04 (c1 snr12)'
+  'pair04': 'Pair 04 (c1 snr12)',
+  'pair06': 'Fetal B... (Bradycardia Alarm)'
 }
 
 export default function SignalPairChangeModal({
