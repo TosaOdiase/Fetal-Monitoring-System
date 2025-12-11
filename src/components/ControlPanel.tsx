@@ -63,9 +63,9 @@ export default function ControlPanel({
   const getSignalDescription = (signalPair: RawSignalPair) => {
     const descriptions: Record<RawSignalPair, string> = {
       'pair01': 'sub01 c0 snr06 - Extract fetal via subtraction',
-      'pair02': 'c1 snr06 - Extract fetal via subtraction',
-      'pair03': 'c1 snr00 - Extract fetal via subtraction (high noise)',
-      'pair04': 'c1 snr12 - Extract fetal via subtraction (low noise)',
+      'pair02': 'sub01 c1 snr06 - Extract fetal via subtraction',
+      'pair03': 'sub01 c1 snr00 - Extract fetal via subtraction (high noise)',
+      'pair04': 'sub01 c1 snr12 - Extract fetal via subtraction (low noise)',
       'pair06': 'Fetal Bradycardia - Alarm condition'
     }
     return descriptions[signalPair]
@@ -312,9 +312,9 @@ export default function ControlPanel({
             </div>
             <div className="signal-pair-info">
               <p><strong>Pair 01:</strong> sub01 c0 snr06 - Fetal extracted via subtraction</p>
-              <p><strong>Pair 02:</strong> c1 snr06 - Fetal extracted via subtraction</p>
-              <p><strong>Pair 03:</strong> c1 snr00 - Fetal extracted via subtraction (high noise)</p>
-              <p><strong>Pair 04:</strong> c1 snr12 - Fetal extracted via subtraction (low noise)</p>
+              <p><strong>Pair 02:</strong> sub01 c1 snr06 - Fetal extracted via subtraction</p>
+              <p><strong>Pair 03:</strong> sub01 c1 snr00 - Fetal extracted via subtraction (high noise)</p>
+              <p><strong>Pair 04:</strong> sub01 c1 snr12 - Fetal extracted via subtraction (low noise)</p>
               <p className="bradycardia-alarm"><strong>Fetal B...:</strong> Fetal Bradycardia - Alarm condition</p>
             </div>
           </div>

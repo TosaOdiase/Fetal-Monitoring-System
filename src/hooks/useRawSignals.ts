@@ -45,36 +45,36 @@ const SIGNAL_PAIRS: Record<RawSignalPair, { combined: string, maternal: string, 
     channel: 'c0'
   },
   'pair02': {
-    combined: 'signal03',  // fecg + mecg (c1 snr06)
-    maternal: 'signal04',  // mecg (c1 snr06)
+    combined: 'signal03',  // fecg + mecg (sub01 c1 snr06)
+    maternal: 'signal04',  // mecg (sub01 c1 snr06)
     name: 'Pair 02',
-    description: 'c1 snr06 - Extract fetal via subtraction',
+    description: 'sub01 c1 snr06 - Extract fetal via subtraction',
     snr: '06dB',
     channel: 'c1'
   },
   'pair03': {
-    combined: 'signal05',  // fecg + mecg (c1 snr00)
-    maternal: 'signal06',  // mecg (c1 snr00)
+    combined: 'signal05',  // fecg + mecg (sub01 c1 snr00)
+    maternal: 'signal06',  // mecg (sub01 c1 snr00)
     name: 'Pair 03',
-    description: 'c1 snr00 - Extract fetal via subtraction (high noise)',
+    description: 'sub01 c1 snr00 - Extract fetal via subtraction (high noise)',
     snr: '00dB',
     channel: 'c1'
   },
   'pair04': {
-    combined: 'signal07',  // fecg + mecg (c1 snr12)
-    maternal: 'signal08',  // mecg (c1 snr12)
+    combined: 'signal07',  // fecg + mecg (sub01 c1 snr12)
+    maternal: 'signal08',  // mecg (sub01 c1 snr12)
     name: 'Pair 04',
-    description: 'c1 snr12 - Extract fetal via subtraction (low noise)',
+    description: 'sub01 c1 snr12 - Extract fetal via subtraction (low noise)',
     snr: '12dB',
     channel: 'c1'
   },
   'pair06': {
-    combined: 'signal01',  // fecg + mecg (using signal01 for bradycardia demo)
-    maternal: 'signal02',  // mecg (using signal02 for bradycardia demo)
+    combined: 'signal03',  // fecg + mecg (using signal03 for bradycardia demo)
+    maternal: 'signal04',  // mecg (using signal04 for bradycardia demo)
     name: 'Fetal B...',
     description: 'Fetal Bradycardia - Alarm condition',
     snr: '06dB',
-    channel: 'c0'
+    channel: 'c1'
   }
 }
 
